@@ -27,6 +27,8 @@ final class TradeOrderMailTest extends TestCase
         $this->assertStringContainsString('Hello Jane Doe', $mail['html']);
         $this->assertStringContainsString('We have received it', $mail['html']);
         $this->assertStringContainsString('PO-1234', $mail['html']);
+        $this->assertStringContainsString('Company', $mail['html']);
+        $this->assertStringContainsString('Sample Trade Ltd', $mail['html']);
         $this->assertStringContainsString('Example Solar Panel 200W', $mail['html']);
         $this->assertStringContainsString('VAT (20%)', $mail['html']);
         $this->assertStringContainsString('£315.00', $mail['html']);
@@ -46,6 +48,10 @@ final class TradeOrderMailTest extends TestCase
         $this->assertStringContainsString('Hello Sample Trade Ltd', $mail['html']);
         $this->assertStringContainsString('30 Days', $mail['html']);
         $this->assertStringNotContainsString('Your PO', $mail['html']);
+
+        $sample['order']['company_name'] = '';
+        $bare = TradeOrderMail::dispatched(order: $sample['order'], items: $sample['items'], sign: '£', taxName: 'VAT', siteName: 'Solar Co');
+        $this->assertStringNotContainsString('>Company<', $bare['html']);
         $this->assertStringNotContainsString('VAT (', $mail['html']);
     }
 

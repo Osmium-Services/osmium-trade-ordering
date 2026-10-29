@@ -72,6 +72,9 @@ final class TradeOrderMail
 
         $rate = ($order['tax_rate_percent'] ?? null) === null ? null : (float) $order['tax_rate_percent'];
         $facts = [['Order', (string) $order['reference']]];
+        $company = \trim((string) ($order['company_name'] ?? ''));
+        $hasCompany = $company !== '';
+        if ($hasCompany) $facts[] = ['Company', $company];
         $hasPo = !empty($order['po_reference']);
         if ($hasPo) $facts[] = ['Your PO', (string) $order['po_reference']];
         $facts[] = ['Payment terms', TradeInvoiceLayout::paymentTerms($order['payment_terms'] ?? null)];
