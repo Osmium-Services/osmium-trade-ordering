@@ -34,7 +34,11 @@ Admins see a Trade orders card on the dashboard: the number of pending orders, t
 
 Download PDF on a Trade Orders row gives the order's document on the site's own TCPDF, in Trade Ordering's own layout: the company details, bill-to, order number, customer PO, date, payment terms, discount, the lines and the totals. What it is called follows the order: Order Acknowledgement while pending, Order Confirmation once confirmed or processing, Invoice once shipped or delivered. Drafts and cancelled orders have none. An order with no payment terms prints 30 Days. The tax rate is kept on the order when it is submitted (migration 005), so the invoice shows the rate the order was priced at.
 
-Customers downloading their own document comes with the theme's order pages. SolarGo2 sends no order emails, so none are built.
+Customers downloading their own document comes with the theme's order pages.
+
+## Order emails (0.7)
+
+Two emails to the trade customer (not in SolarGo2, which sends none): an order confirmation when they submit, and a dispatch confirmation when an admin marks the order Shipped. Both show the order number, PO, payment terms, the lines and the totals, and go through the site's chosen mail provider. A failed send is logged and never blocks the order. Both are in the Template test list under Settings > Email, built from made-up data. The dispatch email sends from the admin now. The confirmation is sent by `TradeBasket::submit` through its `afterSubmit` callback, which the customer pages connect when they are built.
 
 ## Planned
 

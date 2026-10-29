@@ -9,6 +9,7 @@ use Osmium\Services\TradeOrdering\Models\TradeInvoiceLayout;
 use Osmium\Services\TradeOrdering\Models\TradeInvoicePdf;
 use Osmium\Services\TradeOrdering\Models\TradeOrder;
 use Osmium\Services\TradeOrdering\Models\TradeOrderItem;
+use Osmium\Services\TradeOrdering\Models\TradeOrderMailer;
 use Osmium\Services\TradeOrdering\Models\TradeOrderStatus;
 
 /**
@@ -131,6 +132,9 @@ class TradeOrdersController extends AdminController
             recordType: self::RECORD_TYPE,
             recordId: $id,
         );
+
+        $dispatched = $status === TradeOrderStatus::SHIPPED;
+        if ($dispatched) (new TradeOrderMailer($this->osmium))->sendDispatched($id);
 
         return ['success' => true, 'id' => $id];
     }

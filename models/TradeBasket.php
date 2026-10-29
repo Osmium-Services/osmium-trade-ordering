@@ -19,6 +19,7 @@ final class TradeBasket
      * @param callable(int): array{discount_percent: float, payment_terms: ?string} $terms A customer's terms
      * @param callable(): int[] $excludedBrandIds Brands that get no trade discount
      * @param callable(): float $taxRatePercent The shop's tax rate
+     * @param (callable(int): mixed)|null $afterSubmit Called with the order id once an order is submitted (the confirmation email)
      */
     public function __construct(
         private TradeOrder $orders,
@@ -27,6 +28,7 @@ final class TradeBasket
         private $terms,
         private $excludedBrandIds,
         private $taxRatePercent,
+        private $afterSubmit = null,
     ) {
     }
 
@@ -107,7 +109,11 @@ final class TradeBasket
         for ($try = 0; $try < self::REFERENCE_TRIES; $try++) {
             $reference = TradePricing::reference(year: $year, sequence: TradePricing::nextSequence($this->orders->highestReference($year)));
             $submitted = $this->trySubmit(orderId: (int) $draft['id'], reference: $reference, po: $po, paymentTerms: $terms['payment_terms'], taxRate: $taxRate);
-            if ($submitted) return ['success' => true, 'reference' => $reference];
+            if ($submitted) {
+                $this->announce((int) $draft['id']);
+
+                return ['success' => true, 'reference' => $reference];
+            }
         }
 
         return ['success' => false, 'error' => 'Failed to submit order'];
@@ -124,6 +130,12 @@ final class TradeBasket
     }
 
     // Inside
+
+    private function announce(int $orderId): void
+    {
+        $hasListener = $this->afterSubmit !== null;
+        if ($hasListener) ($this->afterSubmit)($orderId);
+    }
 
     /** @return array{success: bool, quantity: int} */
     private function changeQuantity(int $orderId, int $itemId, int $quantity): array
