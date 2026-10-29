@@ -77,7 +77,7 @@
             const response = await fetch(actionUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'details', id: id, token: window.csrfToken })
+                body: JSON.stringify({ action: 'details', id: id, csrf_token: window.csrfToken })
             });
             const result = await response.json();
             if (!result.success) {
