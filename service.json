@@ -1,7 +1,7 @@
 {
     "id": "osmium-trade-ordering",
     "name": "Trade Ordering",
-    "version": "0.4.1",
+    "version": "0.5.0",
     "description": "Trade pricing and ordering for trade customers: a discount and payment terms per customer, brands excluded from the discount, and trade orders. Builds on Trade Accounts and the shop.",
     "category": "business",
     "author": {
@@ -29,6 +29,9 @@
         ],
         "trade.customer.fields.save": [
             "Osmium\\Services\\TradeOrdering\\Models\\TradeOrderingHooks::save"
+        ],
+        "dashboard.widgets": [
+            "Osmium\\Services\\TradeOrdering\\Models\\TradeDashboard::widget"
         ]
     },
     "admin": {

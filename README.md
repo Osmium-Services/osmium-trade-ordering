@@ -26,8 +26,12 @@ Nothing calls this yet: the pages and the admin come next, and the basket is wir
 
 Trade Orders in the admin menu lists submitted orders (open ones, then a collapsed list of delivered and cancelled), with the customer's name from Trade Accounts. Row actions move an order along: Confirm, Mark processing, Mark shipped, Mark delivered, Cancel (and Reopen as pending for a cancelled one). View details shows the customer, PO reference, payment terms, discount and the lines. Each status change goes in the changelog. A draft (the customer's basket) is never listed or changed here.
 
+## Dashboard card (0.5)
+
+Admins see a Trade orders card on the dashboard: the number of pending orders, this month's order value (drafts and cancelled orders left out), and the first five pending orders, each linking to Trade Orders.
+
 ## Planned
 
-The dashboard widget, invoices, order emails, and the customer pages from the theme. See the design note in the osmium-base knowledge base.
+Invoices, order emails, and the customer pages from the theme. See the design note in the osmium-base knowledge base.
 
 A customer deleted for good leaves a harmless terms row behind.

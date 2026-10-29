@@ -48,6 +48,14 @@ class TradeOrder extends Model
         return $this->one(file: 'order-get-admin.sql', bindings: [':id' => $id]);
     }
 
+    /** @return array{total: float, orders: int} what has been ordered this calendar month, not counting drafts or cancelled orders */
+    public function monthValue(): array
+    {
+        $row = $this->one(file: 'order-month-value.sql', bindings: []);
+
+        return ['total' => (float) ($row['total'] ?? 0), 'orders' => (int) ($row['orders'] ?? 0)];
+    }
+
     /** A draft is never changed this way */
     public function setStatus(int $id, string $status): void
     {
