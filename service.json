@@ -1,0 +1,31 @@
+{
+    "id": "osmium-trade-ordering",
+    "name": "Trade Ordering",
+    "version": "0.1.0",
+    "description": "Trade pricing and ordering for trade customers: a discount and payment terms per customer, brands excluded from the discount, and trade orders. Builds on Trade Accounts and the shop.",
+    "category": "business",
+    "author": {
+        "name": "Gavin Cox"
+    },
+    "license": "proprietary",
+    "requires": {
+        "osmium": ">=1.0.0",
+        "php": ">=8.1",
+        "services": ["osmium-trade-accounts", "osmium-shop"]
+    },
+    "autoload": [
+        "models"
+    ],
+    "migrations": "migrations/",
+    "hooks": {
+        "trade.customer.fields": [
+            "Osmium\\Services\\TradeOrdering\\Models\\TradeOrderingHooks::fields"
+        ],
+        "trade.customer.fields.validate": [
+            "Osmium\\Services\\TradeOrdering\\Models\\TradeOrderingHooks::validate"
+        ],
+        "trade.customer.fields.save": [
+            "Osmium\\Services\\TradeOrdering\\Models\\TradeOrderingHooks::save"
+        ]
+    }
+}
