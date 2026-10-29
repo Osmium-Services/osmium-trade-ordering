@@ -102,10 +102,11 @@ final class TradeBasket
 
         $po = $poReference === null || \trim($poReference) === '' ? null : \trim($poReference);
         $terms = ($this->terms)($customerId);
+        $taxRate = ($this->taxRatePercent)();
 
         for ($try = 0; $try < self::REFERENCE_TRIES; $try++) {
             $reference = TradePricing::reference(year: $year, sequence: TradePricing::nextSequence($this->orders->highestReference($year)));
-            $submitted = $this->trySubmit(orderId: (int) $draft['id'], reference: $reference, po: $po, paymentTerms: $terms['payment_terms']);
+            $submitted = $this->trySubmit(orderId: (int) $draft['id'], reference: $reference, po: $po, paymentTerms: $terms['payment_terms'], taxRate: $taxRate);
             if ($submitted) return ['success' => true, 'reference' => $reference];
         }
 
@@ -135,10 +136,10 @@ final class TradeBasket
     }
 
     /** False when the reference was taken at the same moment by another order (the unique key refused it) */
-    private function trySubmit(int $orderId, string $reference, ?string $po, ?string $paymentTerms): bool
+    private function trySubmit(int $orderId, string $reference, ?string $po, ?string $paymentTerms, float $taxRate): bool
     {
         try {
-            return $this->orders->submit(orderId: $orderId, reference: $reference, poReference: $po, paymentTerms: $paymentTerms);
+            return $this->orders->submit(orderId: $orderId, reference: $reference, poReference: $po, paymentTerms: $paymentTerms, taxRatePercent: $taxRate);
         } catch (\PDOException $e) {
             \error_log('Trade order reference clash: ' . $e->getMessage());
 

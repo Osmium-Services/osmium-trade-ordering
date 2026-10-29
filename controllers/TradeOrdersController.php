@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Osmium\Services\TradeOrdering\Controllers;
 
 use Osmium\Modules\Admin\Core\AdminController;
+use Osmium\Services\TradeOrdering\Models\TradeInvoiceLayout;
+use Osmium\Services\TradeOrdering\Models\TradeInvoicePdf;
 use Osmium\Services\TradeOrdering\Models\TradeOrder;
 use Osmium\Services\TradeOrdering\Models\TradeOrderItem;
 use Osmium\Services\TradeOrdering\Models\TradeOrderStatus;
@@ -14,7 +16,7 @@ use Osmium\Services\TradeOrdering\Models\TradeOrderStatus;
  *
  * Routes:
  *   - index()  → /admin/trade/orders/
- *   - action() → /admin/trade/orders/action/   (AJAX: order details and status changes)
+ *   - action() → /admin/trade/orders/action/   (AJAX: order details and status changes, and the PDF download)
  */
 class TradeOrdersController extends AdminController
 {
@@ -36,6 +38,9 @@ class TradeOrdersController extends AdminController
 
     public function action()
     {
+        $isDownload = ($_POST['action'] ?? '') === 'download_invoice';
+        if ($isDownload) $this->downloadInvoice();
+
         \header('Content-Type: application/json');
 
         $isPost = $_SERVER['REQUEST_METHOD'] === 'POST';
@@ -58,6 +63,46 @@ class TradeOrdersController extends AdminController
         }
 
         $this->admin->jsonSuccess($result);
+    }
+
+    /** Streams the order's PDF. It is a form post, so a failure is a plain-text page rather than JSON. */
+    private function downloadInvoice(): void
+    {
+        $isPost = $_SERVER['REQUEST_METHOD'] === 'POST';
+        $csrfValid = $isPost && $this->admin->auth->validateCsrfJson($_POST);
+        if (!$csrfValid) $this->plainError(code: 400, message: 'Invalid request token. Please go back, refresh and try again.');
+
+        $order = (new TradeOrder($this->osmium->dataSource))->getForAdmin((int) ($_POST['id'] ?? 0));
+        $document = $order === null ? null : TradeInvoiceLayout::document((string) $order['status']);
+        if ($document === null) $this->plainError(code: 404, message: 'This order has no document');
+
+        $config = $this->osmium->config;
+        $taxName = (string) ($config->shop->taxName ?? 'VAT');
+        $items = (new TradeOrderItem($this->osmium->dataSource))->listByOrder((int) $order['id']);
+        $pdf = (new TradeInvoicePdf())->build(
+            order: $order,
+            items: $items,
+            companyLines: TradeInvoiceLayout::companyLines(company: (array) ($config->company ?? []), taxName: $taxName),
+            siteName: (string) ($config->site->name ?? ''),
+            sign: $this->currencySign(),
+            taxName: $taxName,
+        );
+
+        $filename = TradeInvoiceLayout::filename(prefix: $document['prefix'], reference: (string) $order['reference']);
+        \header('Content-Type: application/pdf');
+        \header('Content-Disposition: attachment; filename="' . $filename . '"');
+        \header('Content-Length: ' . \strlen($pdf));
+        \header('Cache-Control: private, max-age=0, must-revalidate');
+        echo $pdf;
+        exit;
+    }
+
+    private function plainError(int $code, string $message): never
+    {
+        \http_response_code($code);
+        \header('Content-Type: text/plain; charset=utf-8');
+        echo $message;
+        exit;
     }
 
     /** @return array<string, mixed> */

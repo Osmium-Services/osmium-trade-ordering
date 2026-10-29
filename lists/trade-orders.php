@@ -17,6 +17,12 @@ $orderColumns = [
 $orderActions = [
     ['label' => 'View details', 'icon' => 'bx-show', 'event' => 'view'],
     [
+        'label' => 'Download PDF',
+        'icon' => 'bx-download',
+        'event' => 'download',
+        'visible' => static fn(array $row, array $context): bool => $row['status'] !== 'cancelled',
+    ],
+    [
         'label' => 'Confirm',
         'icon' => 'bx-check',
         'action' => 'status_confirmed',

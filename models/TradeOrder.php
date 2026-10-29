@@ -77,9 +77,9 @@ class TradeOrder extends Model
     }
 
     /** @return bool true when a draft was submitted */
-    public function submit(int $orderId, string $reference, ?string $poReference, ?string $paymentTerms): bool
+    public function submit(int $orderId, string $reference, ?string $poReference, ?string $paymentTerms, float $taxRatePercent): bool
     {
-        $bindings = [':order_id' => $orderId, ':reference' => $reference, ':po_reference' => $poReference, ':payment_terms' => $paymentTerms];
+        $bindings = [':order_id' => $orderId, ':reference' => $reference, ':po_reference' => $poReference, ':payment_terms' => $paymentTerms, ':tax_rate' => $taxRatePercent];
         $statement = $this->database->prepare(sql: $this->loadSqlFile('order-submit.sql'), bindings: $bindings);
         $statement->execute();
 

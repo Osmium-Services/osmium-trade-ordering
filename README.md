@@ -30,8 +30,14 @@ Trade Orders in the admin menu lists submitted orders (open ones, then a collaps
 
 Admins see a Trade orders card on the dashboard: the number of pending orders, this month's order value (drafts and cancelled orders left out), and the first five pending orders, each linking to Trade Orders.
 
+## Order documents (0.6)
+
+Download PDF on a Trade Orders row gives the order's document on the site's own TCPDF, in Trade Ordering's own layout: the company details, bill-to, order number, customer PO, date, payment terms, discount, the lines and the totals. What it is called follows the order: Order Acknowledgement while pending, Order Confirmation once confirmed or processing, Invoice once shipped or delivered. Drafts and cancelled orders have none. An order with no payment terms prints 30 Days. The tax rate is kept on the order when it is submitted (migration 005), so the invoice shows the rate the order was priced at.
+
+Customers downloading their own document comes with the theme's order pages. SolarGo2 sends no order emails, so none are built.
+
 ## Planned
 
-Invoices, order emails, and the customer pages from the theme. See the design note in the osmium-base knowledge base.
+The customer pages from the theme (basket, order history, their own PDF). See the design note in the osmium-base knowledge base.
 
 A customer deleted for good leaves a harmless terms row behind.

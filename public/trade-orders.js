@@ -91,7 +91,27 @@
         }
     }
 
+    // The PDF streams back as a file, so it goes through a real form post rather than fetch
+    function download(id) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = actionUrl;
+        form.enctype = 'multipart/form-data';
+        const fields = { action: 'download_invoice', id: id, csrf_token: window.csrfToken };
+        Object.keys(fields).forEach(function (name) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = fields[name];
+            form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
+        form.remove();
+    }
+
     document.addEventListener('list:action', function (e) {
         if (e.detail.action === 'view') view(e.detail.id);
+        if (e.detail.action === 'download') download(e.detail.id);
     });
 })();
