@@ -1,7 +1,7 @@
 {
     "id": "osmium-trade-ordering",
     "name": "Trade Ordering",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "Trade pricing and ordering for trade customers: a discount and payment terms per customer, brands excluded from the discount, and trade orders. Builds on Trade Accounts and the shop.",
     "category": "business",
     "author": {
@@ -36,6 +36,15 @@
             "section": "Content",
             "items": [
                 {
+                    "id": "trade-orders",
+                    "label": "Trade Orders",
+                    "icon": "bx bx-package",
+                    "placement": "top",
+                    "route": "admin/trade/orders",
+                    "activePattern": "admin/trade/orders*",
+                    "role": null
+                },
+                {
                     "id": "trade-ordering-settings",
                     "label": "Trade Ordering",
                     "icon": "bx bx-purchase-tag",
@@ -51,6 +60,17 @@
                 "class": "Osmium\\Services\\TradeOrdering\\Controllers\\TradeOrderingSettingsController",
                 "method": "index",
                 "title": "Trade Ordering Settings"
+            },
+            "admin/trade/orders": {
+                "controller": "controllers/TradeOrdersController.php",
+                "class": "Osmium\\Services\\TradeOrdering\\Controllers\\TradeOrdersController",
+                "method": "index",
+                "title": "Trade Orders"
+            },
+            "admin/trade/orders/action": {
+                "controller": "controllers/TradeOrdersController.php",
+                "class": "Osmium\\Services\\TradeOrdering\\Controllers\\TradeOrdersController",
+                "method": "action"
             }
         }
     }

@@ -29,6 +29,31 @@ class TradeOrder extends Model
         return $this->one(file: 'order-get.sql', bindings: [':id' => $id]);
     }
 
+    /**
+     * @param string[] $statuses
+     * @return array<int, array<string, mixed>> orders in those statuses with the customer's name and email, newest first
+     */
+    public function listForAdmin(array $statuses): array
+    {
+        $valid = \array_values(\array_filter($statuses, TradeOrderStatus::isValid(...)));
+        $none = $valid === [];
+        if ($none) return [];
+
+        return $this->database->prepare(sql: $this->loadSqlFile('order-list-admin.sql'), bindings: [':statuses' => \implode(',', $valid)])->resultset();
+    }
+
+    /** @return array<string, mixed>|null */
+    public function getForAdmin(int $id): ?array
+    {
+        return $this->one(file: 'order-get-admin.sql', bindings: [':id' => $id]);
+    }
+
+    /** A draft is never changed this way */
+    public function setStatus(int $id, string $status): void
+    {
+        $this->database->prepare(sql: $this->loadSqlFile('order-set-status.sql'), bindings: [':id' => $id, ':status' => $status])->execute();
+    }
+
     public function createDraft(int $customerId, float $discountPercent): int
     {
         $reference = 'DRAFT-' . $customerId . '-' . \time();

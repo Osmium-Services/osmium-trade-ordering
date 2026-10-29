@@ -22,8 +22,12 @@ Under Services, **Trade Ordering** lists the shop's brands with a switch each. A
 
 Nothing calls this yet: the pages and the admin come next, and the basket is wired to the real shop, terms, exclusions and tax rate when its first caller is built.
 
+## Trade Orders admin (0.4)
+
+Trade Orders in the admin menu lists submitted orders (open ones, then a collapsed list of delivered and cancelled), with the customer's name from Trade Accounts. Row actions move an order along: Confirm, Mark processing, Mark shipped, Mark delivered, Cancel (and Reopen as pending for a cancelled one). View details shows the customer, PO reference, payment terms, discount and the lines. Each status change goes in the changelog. A draft (the customer's basket) is never listed or changed here.
+
 ## Planned
 
-The Trade Orders admin, invoices, order emails, and the customer pages from the theme. See the design note in the osmium-base knowledge base.
+The dashboard widget, invoices, order emails, and the customer pages from the theme. See the design note in the osmium-base knowledge base.
 
 A customer deleted for good leaves a harmless terms row behind.

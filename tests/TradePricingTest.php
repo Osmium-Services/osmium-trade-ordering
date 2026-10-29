@@ -70,4 +70,26 @@ final class TradePricingTest extends TestCase
         $this->assertFalse(TradeOrderStatus::isValid('lost'));
         $this->assertSame('Shipped', TradeOrderStatus::label('shipped'));
     }
+
+    public function test_the_workflow_has_one_next_step_and_ends_at_delivered(): void
+    {
+        $this->assertSame('confirmed', TradeOrderStatus::next('pending'));
+        $this->assertSame('delivered', TradeOrderStatus::next('shipped'));
+        $this->assertNull(TradeOrderStatus::next('delivered'));
+        $this->assertNull(TradeOrderStatus::next('cancelled'));
+        $this->assertNull(TradeOrderStatus::next('draft'));
+        $this->assertSame('warning', TradeOrderStatus::badgeClass('pending'));
+        $this->assertSame('secondary', TradeOrderStatus::badgeClass('draft'));
+    }
+
+    public function test_an_admin_can_move_a_submitted_order_but_never_a_draft_or_to_a_made_up_status(): void
+    {
+        $this->assertTrue(TradeOrderStatus::adminCanSet('pending', 'cancelled'));
+        $this->assertTrue(TradeOrderStatus::adminCanSet('cancelled', 'pending'));
+        $this->assertFalse(TradeOrderStatus::adminCanSet('pending', 'pending'));
+        $this->assertFalse(TradeOrderStatus::adminCanSet('draft', 'confirmed'));
+        $this->assertFalse(TradeOrderStatus::adminCanSet('pending', 'draft'));
+        $this->assertFalse(TradeOrderStatus::adminCanSet('pending', 'lost'));
+        $this->assertFalse(TradeOrderStatus::adminCanSet('lost', 'pending'));
+    }
 }
