@@ -72,4 +72,28 @@ final class TradeOrderMailTest extends TestCase
             $this->assertTrue(\is_callable(\explode('::', $sample['handler'])), $sample['handler'] . ' is not callable');
         }
     }
+
+    public function test_the_emails_use_the_site_email_styling_with_the_logo_when_there_is_one(): void
+    {
+        $sample = TradeOrderEmailSamples::data();
+        $brand = ['logoUrl' => 'https://x.test/logo.png', 'logoDarkCss' => '<style>.d{}</style>', 'logoDarkImg' => '<img class="logo-dark" src="https://x.test/d.png">'];
+
+        $mail = TradeOrderMail::confirmation(order: $sample['order'], items: $sample['items'], sign: '£', taxName: 'VAT', siteName: 'Solar Co', brand: $brand);
+
+        $this->assertStringContainsString('class="logo-band"', $mail['html']);
+        $this->assertStringContainsString('src="https://x.test/logo.png"', $mail['html']);
+        $this->assertStringContainsString('class="logo-dark"', $mail['html']);
+        $this->assertStringContainsString('border-bottom:4px solid #166534', $mail['html']);
+        $this->assertStringContainsString('&copy; Solar Co - This is an automated message', $mail['html']);
+    }
+
+    public function test_without_a_logo_the_site_name_stands_in_the_header(): void
+    {
+        $sample = TradeOrderEmailSamples::data();
+
+        $mail = TradeOrderMail::dispatched(order: $sample['order'], items: $sample['items'], sign: '£', taxName: 'VAT', siteName: 'Solar Co');
+
+        $this->assertStringNotContainsString('<img', $mail['html']);
+        $this->assertStringContainsString('font-weight:bold;color:#166534">Solar Co</span>', $mail['html']);
+    }
 }

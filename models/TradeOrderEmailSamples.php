@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Osmium\Services\TradeOrdering\Models;
 
+use Osmium\Core\Library\BrandLogo;
 use Osmium\Core\Library\MailerFactory;
 
 /**
@@ -40,7 +41,7 @@ final class TradeOrderEmailSamples
     public static function sendConfirmation(array $payload): array
     {
         $sample = self::data();
-        $mail = TradeOrderMail::confirmation(order: $sample['order'], items: $sample['items'], sign: self::sign($payload), taxName: self::taxName($payload), siteName: (string) $payload['osmium']->config->site->name);
+        $mail = TradeOrderMail::confirmation(order: $sample['order'], items: $sample['items'], sign: self::sign($payload), taxName: self::taxName($payload), siteName: (string) $payload['osmium']->config->site->name, brand: self::brand($payload));
 
         return self::send(payload: $payload, mail: $mail);
     }
@@ -49,9 +50,17 @@ final class TradeOrderEmailSamples
     public static function sendDispatched(array $payload): array
     {
         $sample = self::data();
-        $mail = TradeOrderMail::dispatched(order: $sample['order'], items: $sample['items'], sign: self::sign($payload), taxName: self::taxName($payload), siteName: (string) $payload['osmium']->config->site->name);
+        $mail = TradeOrderMail::dispatched(order: $sample['order'], items: $sample['items'], sign: self::sign($payload), taxName: self::taxName($payload), siteName: (string) $payload['osmium']->config->site->name, brand: self::brand($payload));
 
         return self::send(payload: $payload, mail: $mail);
+    }
+
+    /** @return array{logoUrl: string, logoDarkCss: string, logoDarkImg: string} */
+    private static function brand(array $payload): array
+    {
+        $site = $payload['osmium']->config->site;
+
+        return BrandLogo::emailVars(fqdn: (string) $site->FQDN, siteName: (string) $site->name);
     }
 
     private static function sign(array $payload): string

@@ -1,7 +1,7 @@
 {
     "id": "osmium-trade-ordering",
     "name": "Trade Ordering",
-    "version": "0.7.0",
+    "version": "0.7.1",
     "description": "Trade pricing and ordering for trade customers: a discount and payment terms per customer, brands excluded from the discount, and trade orders. Builds on Trade Accounts and the shop.",
     "category": "business",
     "author": {
