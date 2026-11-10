@@ -22,14 +22,18 @@
 <?php endif; ?>
 
 <?php if (!$admin['shopBrandsAvailable']): ?>
-    <div class="alert alert-warning">
-        The shop did not list its brands. Check the Osmium Shop is installed and up to date, then reload this page.
+    <div class="row justify-content-center">
+        <div class="col-lg-4">
+            <div class="alert alert-warning">
+                The shop did not list its brands. Check the Osmium Shop is installed and up to date, then reload this page.
+            </div>
+        </div>
     </div>
 <?php else: ?>
     <form method="POST" action="<?= $admin['basePath'] ?>settings/trade-ordering/" id="settings-form">
         <input type="hidden" name="token" value="<?= $template['formToken'] ?? '' ?>">
         <div class="row justify-content-center">
-            <div class="col-lg-6">
+            <div class="col-lg-4">
                 <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="mb-0"><i class="bx bx-purchase-tag me-2"></i>Brands that get the trade discount</h5>
