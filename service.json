@@ -1,7 +1,7 @@
 {
     "id": "osmium-trade-ordering",
     "name": "Trade Ordering",
-    "version": "0.7.3",
+    "version": "0.8.0",
     "description": "Trade pricing and ordering for trade customers: a discount and payment terms per customer, brands excluded from the discount, and trade orders. Builds on Trade Accounts and the shop.",
     "category": "business",
     "author": {
@@ -45,7 +45,9 @@
                     "id": "trade-orders",
                     "label": "Trade Orders",
                     "icon": "bx bx-package",
-                    "placement": "top",
+                    "placement": "group",
+                    "group": "trade",
+                    "order": 20,
                     "route": "admin/trade/orders",
                     "activePattern": "admin/trade/orders*",
                     "role": null
