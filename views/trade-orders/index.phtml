@@ -13,6 +13,11 @@ $listContext = [
     <h4 class="mb-0">
         <i class="bx bx-package me-2 align-text-bottom"></i>Trade Orders
     </h4>
+    <?php if ($admin['isAdmin'] ?? false): ?>
+    <a href="<?= $admin['basePath'] ?>settings/trade-ordering/" class="btn btn-outline-secondary">
+        <i class="bx bx-cog me-1"></i> Settings
+    </a>
+    <?php endif; ?>
 </div>
 
 <?= ListView::render($admin['lists']['open'], $admin['openOrders'], $listContext) ?>
