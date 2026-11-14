@@ -46,7 +46,7 @@ A product with option types (the shop's `shop.product.options` hook) is ordered 
 
 ## For the theme
 
-The customer pages are claimed by this service and drawn by the theme's views: see the list at the top of `models/TradeOrderingClaim.php` for each view's data. The same routes the forms post to answer `Accept: application/json` with the result and the new basket, and `api/trade-basket-cart` returns the basket, so a theme can run a slide-in basket without a page reload. The Documents link on a product appears only when Trade Downloads answers `trade.documents.url`.
+The customer pages are claimed by this service and drawn by the theme's views: see the list at the top of `models/TradeOrderingClaim.php` for each view's data. The same routes the forms post to answer `Accept: application/json` with the result and the new basket, and `api/trade-basket-cart` returns the basket, so a theme can run a slide-in basket without a page reload. The Documents link on a product appears only when Trade Downloads answers `trade.documents.url`. The `trade.category.layout` hook gives other services the price list's category sections (name, path, order, or false for hidden), so a documents list can group products as the price list does.
 
 ## Planned
 
