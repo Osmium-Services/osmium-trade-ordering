@@ -10,9 +10,11 @@ use Osmium\Core\Models\ServiceModel;
 use Osmium\Modules\Admin\Core\AdminController;
 use Osmium\Services\TradeOrdering\Models\TradeBrandExclusions;
 use Osmium\Services\TradeOrdering\Models\TradeBrandRules;
+use Osmium\Services\TradeOrdering\Models\TradeCategoryModes;
+use Osmium\Services\TradeOrdering\Models\TradeCategoryRules;
 
 /**
- * Trade Ordering settings: which shop brands get the trade discount. A full-page form POST/redirect flow.
+ * Trade Ordering settings: which shop brands get the trade discount, and how each shop category appears on the price list. A full-page form POST/redirect flow.
  *
  * Routes:
  *   - index() → /admin/settings/trade-ordering/  (GET shows the page; POST saves)
@@ -31,6 +33,10 @@ class TradeOrderingSettingsController extends AdminController
 
         $this->data['admin']['shopBrandsAvailable'] = $brands !== null;
         $this->data['admin']['brandRows'] = TradeBrandRules::rows(brands: $brands ?? [], excludedIds: $exclusions->ids());
+        $categories = $this->shopCategories();
+        $this->data['admin']['shopCategoriesAvailable'] = $categories !== null;
+        $this->data['admin']['categoryRows'] = TradeCategoryModes::rows(categories: $categories ?? [], modes: (new TradeCategoryRules($this->osmium->dataSource))->modes());
+        $this->data['admin']['categoryLabels'] = TradeCategoryModes::LABELS;
         $this->data['admin']['settingsSaved'] = $_SESSION['trade_ordering_saved'] ?? false;
         $this->data['admin']['settingsError'] = $_SESSION['trade_ordering_error'] ?? false;
         foreach (self::FLASH_KEYS as $key) {
@@ -53,7 +59,14 @@ class TradeOrderingSettingsController extends AdminController
         $ticked = \array_map('intval', (array) ($_POST['eligible'] ?? []));
         $exclusions->replace(TradeBrandRules::nextExclusions(brands: $brands, currentExcluded: $exclusions->ids(), tickedIds: $ticked));
 
-        $this->admin->model->changelog->log(description: 'Updated Trade Ordering brand discount settings', recordType: 'settings');
+        $categories = $this->shopCategories();
+        $hasCategories = $categories !== null;
+        if ($hasCategories) {
+            $rules = new TradeCategoryRules($this->osmium->dataSource);
+            $rules->replace(TradeCategoryModes::next(categories: $categories, current: $rules->modes(), posted: (array) ($_POST['category_mode'] ?? [])));
+        }
+
+        $this->admin->model->changelog->log(description: 'Updated Trade Ordering settings (brand discount and price list categories)', recordType: 'settings');
 
         $_SESSION['trade_ordering_saved'] = true;
         $this->redirect('settings/trade-ordering/');
@@ -65,6 +78,14 @@ class TradeOrderingSettingsController extends AdminController
         $hooks = new ServiceHooks(new ServiceLoader(new ServiceModel($this->osmium->dataSource)));
 
         return $hooks->handle('shop.brands', ['dataSource' => $this->osmium->dataSource]);
+    }
+
+    /** @return array<int, array{id: int, parentId: ?int, name: string, path: string[], order: int[]}>|null null when the shop did not answer */
+    private function shopCategories(): ?array
+    {
+        $hooks = new ServiceHooks(new ServiceLoader(new ServiceModel($this->osmium->dataSource)));
+
+        return $hooks->handle('shop.categories', ['dataSource' => $this->osmium->dataSource]);
     }
 
     private function fail(string $message): never

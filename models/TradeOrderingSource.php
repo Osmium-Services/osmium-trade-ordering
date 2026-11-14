@@ -30,6 +30,14 @@ final class TradeOrderingSource
         return \is_array($products) ? $products : [];
     }
 
+    /** @return array<int, array{id: int, parentId: ?int, name: string, path: string[], order: int[]}> the shop's category tree, in order */
+    public static function categories(object $osmium): array
+    {
+        $categories = self::hooks($osmium)->handle(event: 'shop.categories', payload: ['dataSource' => $osmium->dataSource]);
+
+        return \is_array($categories) ? $categories : [];
+    }
+
     /** @return array<string, mixed>|null one product, as shop.product.get gives it */
     public static function product(object $osmium, int $productId): ?array
     {

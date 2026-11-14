@@ -50,6 +50,31 @@
                     </div>
                 </div>
             </div>
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bx bx-sitemap me-2"></i>Price list categories</h5>
+                    </div>
+                    <div class="card-body">
+                        <?php if (!$admin['shopCategoriesAvailable']): ?>
+                            <p class="mb-0">The shop did not list its categories. Update the Osmium Shop, then reload this page.</p>
+                        <?php else: ?>
+                            <p class="text-muted">How each shop category appears on the trade price list. The order follows the shop's category order. A product is listed under the first category it belongs to. Hidden also hides the categories inside it.</p>
+                            <?php foreach ($admin['categoryRows'] as $category): ?>
+                                <div class="d-flex align-items-center justify-content-between mb-2" style="padding-left: <?= (int) $category['depth'] * 1.25 ?>rem;">
+                                    <label class="form-label mb-0 me-3" for="category<?= (int) $category['id'] ?>"><?= \htmlspecialchars($category['name']) ?></label>
+                                    <select class="form-select form-select-sm w-auto" id="category<?= (int) $category['id'] ?>" name="category_mode[<?= (int) $category['id'] ?>]">
+                                        <?php foreach ($admin['categoryLabels'] as $mode => $label): ?>
+                                            <?php if ($mode === 'inside' && !$category['canBeInside']) continue; ?>
+                                            <option value="<?= \htmlspecialchars($mode) ?>" <?= $category['mode'] === $mode ? 'selected' : '' ?>><?= \htmlspecialchars($label) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
         </div>
     </form>
 <?php endif; ?>

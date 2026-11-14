@@ -78,7 +78,8 @@ final class TradeOrderingClaim
                 $osmium = $context['osmium'];
                 $discount = TradeBasketFactory::terms($osmium->dataSource, $context['customerId'])['discount_percent'];
                 $excluded = (new TradeBrandExclusions($osmium->dataSource))->ids();
-                $sections = TradeCatalogue::sections(TradeOrderingSource::products($osmium), $discount, $excluded, TradeOrderingSource::taxRatePercent($osmium));
+                $modes = (new TradeCategoryRules($osmium->dataSource))->modes();
+                $sections = TradeCatalogue::sections(TradeOrderingSource::products($osmium), $discount, $excluded, TradeOrderingSource::taxRatePercent($osmium), TradeOrderingSource::categories($osmium), $modes);
             }
 
             return ['view' => 'trade/views/products.phtml', 'data' => ['tradeProducts' => $common + [
