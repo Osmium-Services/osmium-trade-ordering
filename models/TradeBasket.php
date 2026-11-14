@@ -16,6 +16,7 @@ final class TradeBasket
 
     /**
      * @param callable(int): ?array $product The shop's product (shop.product.get), or null
+     * @param callable(int): array<int, array<string, mixed>> $options The product's option types (shop.product.options)
      * @param callable(int): array{discount_percent: float, payment_terms: ?string} $terms A customer's terms
      * @param callable(): int[] $excludedBrandIds Brands that get no trade discount
      * @param callable(): float $taxRatePercent The shop's tax rate
@@ -25,6 +26,7 @@ final class TradeBasket
         private TradeOrder $orders,
         private TradeOrderItem $items,
         private $product,
+        private $options,
         private $terms,
         private $excludedBrandIds,
         private $taxRatePercent,
@@ -32,8 +34,11 @@ final class TradeBasket
     ) {
     }
 
-    /** @return array{success: bool, error?: string, item_id?: int, quantity?: int} */
-    public function add(int $customerId, int $productId, int $quantity): array
+    /**
+     * @param array<int|string, int|string> $selected option type id => value id, for a product that has options
+     * @return array{success: bool, error?: string, item_id?: int, quantity?: int}
+     */
+    public function add(int $customerId, int $productId, int $quantity, array $selected = []): array
     {
         $quantity = \min(self::MAX_QUANTITY, \max(1, $quantity));
 
@@ -41,12 +46,18 @@ final class TradeBasket
         $missing = $product === null || !$product['available'];
         if ($missing) return ['success' => false, 'error' => 'Product not found'];
 
+        $chosen = TradeOptions::choose(types: ($this->options)($productId), selected: $selected);
+        $badOptions = $chosen === null;
+        if ($badOptions) return ['success' => false, 'error' => 'Invalid options'];
+
         $terms = ($this->terms)($customerId);
         $draft = $this->orders->getDraft($customerId);
         $orderId = $draft === null ? $this->orders->createDraft(customerId: $customerId, discountPercent: $terms['discount_percent']) : (int) $draft['id'];
 
-        $existing = $this->items->getByProduct(orderId: $orderId, productId: $productId);
-        if ($existing !== null) return $this->changeQuantity(orderId: $orderId, itemId: (int) $existing['id'], quantity: (int) $existing['quantity'] + $quantity);
+        foreach ($this->items->listByProduct(orderId: $orderId, productId: $productId) as $existing) {
+            $sameOptions = (string) ($existing['options_json'] ?? '') === $chosen['json'];
+            if ($sameOptions) return $this->changeQuantity(orderId: $orderId, itemId: (int) $existing['id'], quantity: (int) $existing['quantity'] + $quantity);
+        }
 
         $eligible = !\in_array((int) $product['brandId'], ($this->excludedBrandIds)(), true);
         $priced = TradePricing::line(
@@ -55,10 +66,13 @@ final class TradeBasket
             brandEligible: $eligible,
             taxRatePercent: ($this->taxRatePercent)(),
             quantity: $quantity,
+            premiumExcTax: $chosen['premium'],
         );
         $itemId = $this->items->insert(orderId: $orderId, productId: $productId, line: $priced + [
             'product_ref' => (string) $product['reference'],
-            'product_title' => \trim($product['brandName'] . ' ' . $product['name']),
+            'product_title' => \trim($product['brandName'] . ' ' . $product['name']) . ($chosen['display'] === '' ? '' : ' (' . $chosen['display'] . ')'),
+            'options_json' => $chosen['json'],
+            'options_display' => $chosen['display'],
             'quantity' => $quantity,
         ]);
         $this->orders->updateTotals($orderId);

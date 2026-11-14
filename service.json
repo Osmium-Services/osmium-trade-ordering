@@ -102,6 +102,7 @@
     },
     "api": {
         "routes": {
+            "api/trade-basket-cart": "controllers/trade-basket-cart.php",
             "api/trade-basket-add": "controllers/trade-basket-add.php",
             "api/trade-basket-set": "controllers/trade-basket-set.php",
             "api/trade-basket-submit": "controllers/trade-basket-submit.php",

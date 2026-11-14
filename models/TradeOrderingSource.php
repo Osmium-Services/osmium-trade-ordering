@@ -46,6 +46,17 @@ final class TradeOrderingSource
         return \is_array($product) ? $product : null;
     }
 
+    /**
+     * @param int $productId 0 for every product
+     * @return array<int, array<int, array<string, mixed>>> option types by product id, as shop.product.options gives them
+     */
+    public static function options(object $osmium, int $productId = 0): array
+    {
+        $options = self::hooks($osmium)->handle(event: 'shop.product.options', payload: ['productId' => $productId, 'dataSource' => $osmium->dataSource]);
+
+        return \is_array($options) ? $options : [];
+    }
+
     public static function taxRatePercent(object $osmium): float
     {
         return (float) ($osmium->config->shop->taxRatePercent ?? 0);

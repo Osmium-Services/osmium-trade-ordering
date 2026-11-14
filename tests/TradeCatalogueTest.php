@@ -40,7 +40,7 @@ final class TradeCatalogueTest extends TestCase
     {
         $this->assertTrue(TradeCatalogue::priced($this->product(1, 'A'), 0.0, [], 20.0)['canOrder']);
         $this->assertFalse(TradeCatalogue::priced($this->product(2, 'B', available: false), 0.0, [], 20.0)['canOrder']);
-        $this->assertFalse(TradeCatalogue::priced($this->product(3, 'C', hasOptions: true), 0.0, [], 20.0)['canOrder']);
+        $this->assertTrue(TradeCatalogue::priced($this->product(3, 'C', hasOptions: true), 0.0, [], 20.0)['canOrder']);
     }
 
     public function test_sections_follow_the_category_order_with_no_category_last_and_products_by_title(): void

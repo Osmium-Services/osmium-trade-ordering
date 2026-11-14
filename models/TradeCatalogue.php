@@ -9,7 +9,7 @@ namespace Osmium\Services\TradeOrdering\Models;
  * shop's own category tree (sections by the category's sort numbers from the top, products with no category in "Other"
  * last, products by title within a section). Pure.
  *
- * A product can be put on an order when it is available and has no options (configured products come later).
+ * A product can be put on an order when it is available (a product with options is configured first).
  */
 final class TradeCatalogue
 {
@@ -106,7 +106,8 @@ final class TradeCatalogue
             'tradePriceExcTax' => $line['unit_exc_tax'],
             'tradePriceIncTax' => $line['unit_inc_tax'],
             'discounted' => $eligible && $discountPercent > 0,
-            'canOrder' => (bool) $product['available'] && !(bool) $product['hasOptions'],
+            'discountAllowed' => $eligible,
+            'canOrder' => (bool) $product['available'],
         ];
     }
 

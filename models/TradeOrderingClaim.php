@@ -63,6 +63,24 @@ final class TradeOrderingClaim
     }
 
     /**
+     * Each product with its option types; a product has options when it has any (the shop's own flag is not used)
+     *
+     * @param array<int, array<string, mixed>> $products
+     * @param array<int, array<int, array<string, mixed>>> $options by product id
+     * @return array<int, array<string, mixed>>
+     */
+    private static function withOptions(array $products, array $options): array
+    {
+        foreach ($products as &$product) {
+            $types = $options[(int) $product['id']] ?? [];
+            $product['options'] = $types;
+            $product['hasOptions'] = $types !== [];
+        }
+
+        return $products;
+    }
+
+    /**
      * @param array<string, mixed> $common
      * @param array<string, mixed> $context
      * @return array{view: string, data: array<string, mixed>}
@@ -79,13 +97,15 @@ final class TradeOrderingClaim
                 $discount = TradeBasketFactory::terms($osmium->dataSource, $context['customerId'])['discount_percent'];
                 $excluded = (new TradeBrandExclusions($osmium->dataSource))->ids();
                 $modes = (new TradeCategoryRules($osmium->dataSource))->modes();
-                $sections = TradeCatalogue::sections(TradeOrderingSource::products($osmium), $discount, $excluded, TradeOrderingSource::taxRatePercent($osmium), TradeOrderingSource::categories($osmium), $modes);
+                $sections = TradeCatalogue::sections(self::withOptions(TradeOrderingSource::products($osmium), TradeOrderingSource::options($osmium)), $discount, $excluded, TradeOrderingSource::taxRatePercent($osmium), TradeOrderingSource::categories($osmium), $modes);
             }
 
             return ['view' => 'trade/views/products.phtml', 'data' => ['tradeProducts' => $common + [
                 'discountPercent' => $discount,
                 'sections' => $sections,
                 'addAction' => '/api/trade-basket-add' . $slash,
+                'documentsUrl' => '/trade/downloads' . $slash,
+                'taxRatePercent' => $loggedIn ? TradeOrderingSource::taxRatePercent($context['osmium']) : 0.0,
             ]]];
         }
 

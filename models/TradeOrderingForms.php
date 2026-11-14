@@ -11,17 +11,19 @@ namespace Osmium\Services\TradeOrdering\Models;
  */
 final class TradeOrderingForms
 {
-    /** POST: product_id, quantity */
+    /** POST: product_id, quantity, options[option type id] = option value id (for a product with options) */
     public static function add(object $osmium): never
     {
         $customer = self::customer($osmium);
         $productId = (int) ($_POST['product_id'] ?? 0);
         $quantity = \max(1, (int) ($_POST['quantity'] ?? 1));
 
-        $result = TradeBasketFactory::make($osmium)->add(customerId: (int) $customer['id'], productId: $productId, quantity: $quantity);
+        $selected = \is_array($_POST['options'] ?? null) ? $_POST['options'] : [];
+
+        $result = TradeBasketFactory::make($osmium)->add(customerId: (int) $customer['id'], productId: $productId, quantity: $quantity, selected: $selected);
         $ok = $result['success'];
 
-        self::done($osmium, self::path($osmium, 'products'), $ok ? ['notice' => 'Added to your order.'] : ['error' => $result['error'] ?? 'Could not add that product.']);
+        self::done($osmium, $customer, self::path($osmium, 'products'), $ok ? ['notice' => 'Added to your order.'] : ['error' => $result['error'] ?? 'Could not add that product.']);
     }
 
     /** POST: item_id, quantity (0 removes the line) */
@@ -34,7 +36,7 @@ final class TradeOrderingForms
         $result = TradeBasketFactory::make($osmium)->setQuantity(customerId: (int) $customer['id'], itemId: $itemId, quantity: $quantity);
         $ok = $result['success'];
 
-        self::done($osmium, self::path($osmium, 'basket'), $ok ? ['notice' => 'Your order has been updated.'] : ['error' => $result['error'] ?? 'Could not update your order.']);
+        self::done($osmium, $customer, self::path($osmium, 'basket'), $ok ? ['notice' => 'Your order has been updated.'] : ['error' => $result['error'] ?? 'Could not update your order.']);
     }
 
     /** POST: po_reference (optional) */
@@ -47,8 +49,16 @@ final class TradeOrderingForms
         $ok = $result['success'];
 
         $ok
-            ? self::done($osmium, self::path($osmium, 'orders'), ['notice' => 'Thank you. Your order ' . $result['reference'] . ' has been submitted.'])
-            : self::done($osmium, self::path($osmium, 'basket'), ['error' => $result['error'] ?? 'Could not submit your order.']);
+            ? self::done($osmium, $customer, self::path($osmium, 'orders'), ['notice' => 'Thank you. Your order ' . $result['reference'] . ' has been submitted.'], ['reference' => $result['reference']])
+            : self::done($osmium, $customer, self::path($osmium, 'basket'), ['error' => $result['error'] ?? 'Could not submit your order.']);
+    }
+
+    /** POST (JSON): the customer's draft order, for the slide-in basket */
+    public static function cart(object $osmium): never
+    {
+        $customer = self::customer($osmium);
+
+        self::json(['success' => true, 'cart' => self::cartPayload($osmium, (int) $customer['id'])]);
     }
 
     /** POST: id. The customer's own order as a PDF; any other order (or one with no document) is a plain-text refusal */
@@ -69,12 +79,13 @@ final class TradeOrderingForms
         TradeOrderDocument::send($osmium, $order);
     }
 
-    /** The logged-in customer, or the visitor goes to the login page */
+    /** The logged-in customer, or the visitor goes to the login page (a script asking for JSON is told so instead) */
     private static function customer(object $osmium): array
     {
         $notPost = ($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST';
         $customer = TradeOrderingSource::customer($osmium);
         $refused = $notPost || $customer === null;
+        if ($refused && self::wantsJson()) self::json(['success' => false, 'error' => 'Not authenticated']);
         if ($refused) self::go($osmium, self::path($osmium, 'login'));
 
         return $customer;
@@ -87,11 +98,43 @@ final class TradeOrderingForms
         return '/trade/' . $page . $slash;
     }
 
-    /** @param array<string, mixed> $flash */
-    private static function done(object $osmium, string $to, array $flash): never
+    /**
+     * A page asked for with a form is left with a one-time message and sent on; the slide-in basket asks for JSON and gets the
+     * result and the new basket back.
+     *
+     * @param array<string, mixed> $flash notice or error
+     * @param array<string, mixed> $extra more for the JSON answer
+     */
+    private static function done(object $osmium, array $customer, string $to, array $flash, array $extra = []): never
     {
+        if (self::wantsJson()) {
+            $failed = isset($flash['error']);
+            self::json(['success' => !$failed, ($failed ? 'error' : 'message') => $flash['error'] ?? $flash['notice'], 'cart' => self::cartPayload($osmium, (int) $customer['id'])] + $extra);
+        }
+
         TradeOrderingFlash::set($_SESSION, $flash);
         self::go($osmium, $to);
+    }
+
+    private static function wantsJson(): bool
+    {
+        return \str_contains((string) ($_SERVER['HTTP_ACCEPT'] ?? ''), 'application/json');
+    }
+
+    /** @return array<string, mixed> */
+    private static function cartPayload(object $osmium, int $customerId): array
+    {
+        $cart = TradeBasketFactory::make($osmium)->cart($customerId);
+
+        return TradeCartPayload::build($cart['order'], $cart['items'], TradeOrderingSource::currencySign($osmium));
+    }
+
+    /** @param array<string, mixed> $data */
+    private static function json(array $data): never
+    {
+        \header('Content-Type: application/json; charset=utf-8');
+        echo \json_encode($data);
+        exit;
     }
 
     private static function go(object $osmium, string $to): never

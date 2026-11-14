@@ -23,15 +23,13 @@ class TradeOrderItem extends Model
         return $this->database->prepare(sql: $this->loadSqlFile('item-list-by-order.sql'), bindings: [':order_id' => $orderId])->resultset();
     }
 
-    /** @return array<string, mixed>|null */
-    public function getByProduct(int $orderId, int $productId): ?array
+    /** @return array<int, array<string, mixed>> every line of one product on an order (the same product can be there with different options) */
+    public function listByProduct(int $orderId, int $productId): array
     {
-        $row = $this->database->prepare(sql: $this->loadSqlFile('item-get-by-product.sql'), bindings: [':order_id' => $orderId, ':product_id' => $productId])->single();
-
-        return $row ?: null;
+        return $this->database->prepare(sql: $this->loadSqlFile('item-list-by-product.sql'), bindings: [':order_id' => $orderId, ':product_id' => $productId])->resultset();
     }
 
-    /** @param array{product_ref: string, product_title: string, quantity: int, unit_exc_tax: float, unit_inc_tax: float, line_exc_tax: float, line_inc_tax: float} $line */
+    /** @param array{product_ref: string, product_title: string, options_json?: string, options_display?: string, quantity: int, unit_exc_tax: float, unit_inc_tax: float, line_exc_tax: float, line_inc_tax: float} $line */
     public function insert(int $orderId, int $productId, array $line): int
     {
         $bindings = [
@@ -39,6 +37,8 @@ class TradeOrderItem extends Model
             ':product_id' => $productId,
             ':product_ref' => $line['product_ref'],
             ':product_title' => $line['product_title'],
+            ':options_json' => ($line['options_json'] ?? '') === '' ? null : $line['options_json'],
+            ':options_display' => ($line['options_display'] ?? '') === '' ? null : $line['options_display'],
             ':quantity' => $line['quantity'],
             ':unit_exc' => $line['unit_exc_tax'],
             ':unit_inc' => $line['unit_inc_tax'],
