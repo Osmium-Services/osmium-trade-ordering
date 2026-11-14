@@ -27,7 +27,25 @@ final class TradeOrderingSource
     {
         $products = self::hooks($osmium)->handle(event: 'shop.products.list', payload: ['dataSource' => $osmium->dataSource, 'osmium' => $osmium]);
 
-        return \is_array($products) ? $products : [];
+        if (!\is_array($products)) return [];
+
+        $imagesPath = (string) ($osmium->config->site->imagesPath ?? '/assets/images');
+        foreach ($products as &$product) {
+            $product['image'] = self::bestImage($osmium, $imagesPath, $product['image'] ?? null);
+        }
+
+        return $products;
+    }
+
+    /** The product's main image in the best format the site has (AVIF, then WebP, then the shop's jpg), as the shop's own pages show it */
+    private static function bestImage(object $osmium, string $imagesPath, ?string $image): ?string
+    {
+        $isUnder = $image !== null && \str_starts_with($image, $imagesPath . '/') && \str_ends_with($image, '.jpg');
+        if (!$isUnder) return $image;
+
+        $best = $osmium->imagePath(\substr($image, \strlen($imagesPath), -4));
+
+        return $best !== '' ? $best : $image;
     }
 
     /** @return array<int, array{id: int, parentId: ?int, name: string, path: string[], order: int[]}> the shop's category tree, in order */
