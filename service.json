@@ -35,6 +35,24 @@
         ],
         "email.samples": [
             "Osmium\\Services\\TradeOrdering\\Models\\TradeOrderEmailSamples::samples"
+        ],
+        "page.claim": [
+            "Osmium\\Services\\TradeOrdering\\Models\\TradeOrderingClaim::page"
+        ],
+        "service.installed": [
+            "Osmium\\Services\\TradeOrdering\\Models\\TradeOrderingPages::onEnabled"
+        ],
+        "service.enabled": [
+            "Osmium\\Services\\TradeOrdering\\Models\\TradeOrderingPages::onEnabled"
+        ],
+        "service.disabled": [
+            "Osmium\\Services\\TradeOrdering\\Models\\TradeOrderingPages::onDisabled"
+        ],
+        "service.removing": [
+            "Osmium\\Services\\TradeOrdering\\Models\\TradeOrderingPages::onDisabled"
+        ],
+        "pages.protected_urls": [
+            "Osmium\\Services\\TradeOrdering\\Models\\TradeOrderingPages::protectedUrls"
         ]
     },
     "admin": {
@@ -80,6 +98,13 @@
                 "class": "Osmium\\Services\\TradeOrdering\\Controllers\\TradeOrdersController",
                 "method": "action"
             }
+        }
+    },
+    "api": {
+        "routes": {
+            "api/trade-basket-add": "controllers/trade-basket-add.php",
+            "api/trade-basket-set": "controllers/trade-basket-set.php",
+            "api/trade-basket-submit": "controllers/trade-basket-submit.php"
         }
     }
 }

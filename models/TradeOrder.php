@@ -42,6 +42,12 @@ class TradeOrder extends Model
         return $this->database->prepare(sql: $this->loadSqlFile('order-list-admin.sql'), bindings: [':statuses' => \implode(',', $valid)])->resultset();
     }
 
+    /** @return array<int, array<string, mixed>> a customer's submitted orders (never the draft), newest first */
+    public function listForCustomer(int $customerId): array
+    {
+        return $this->database->prepare(sql: $this->loadSqlFile('order-list-by-customer.sql'), bindings: [':customer_id' => $customerId])->resultset();
+    }
+
     /** @return array<string, mixed>|null */
     public function getForAdmin(int $id): ?array
     {
