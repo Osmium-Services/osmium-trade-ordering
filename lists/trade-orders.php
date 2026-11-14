@@ -11,7 +11,7 @@ $orderColumns = [
     ['key' => 'company_name', 'label' => 'Customer', 'type' => 'text', 'fill' => true, 'fallback' => '-', 'sub' => ['key' => 'email', 'style' => 'muted']],
     ['key' => 'item_count', 'label' => 'Items', 'type' => 'text', 'small' => true, 'nowrap' => true],
     ['key' => 'totalText', 'label' => 'Total inc tax', 'type' => 'text', 'small' => true, 'nowrap' => true],
-    ['key' => 'statusLabel', 'label' => 'Status', 'type' => 'badge', 'text' => true, 'classKey' => 'statusClass', 'nowrap' => true],
+    ['key' => 'statusLabel', 'label' => 'Status', 'type' => 'badge', 'text' => true, 'classKey' => 'statusClass', 'classPrefix' => 'bg-label-', 'nowrap' => true],
 ];
 
 $orderActions = [
