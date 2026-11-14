@@ -30,6 +30,9 @@
         "trade.customer.fields.save": [
             "Osmium\\Services\\TradeOrdering\\Models\\TradeOrderingHooks::save"
         ],
+        "trade.category.layout": [
+            "Osmium\\Services\\TradeOrdering\\Models\\TradeCategoryLayout::answer"
+        ],
         "dashboard.widgets": [
             "Osmium\\Services\\TradeOrdering\\Models\\TradeDashboard::widget"
         ],
