@@ -30,6 +30,17 @@ class TradeOrdersController extends AdminController
         $open = $model->listForAdmin(TradeOrderStatus::OPEN);
         $closed = $model->listForAdmin(TradeOrderStatus::CLOSED);
 
+        $counts = \array_fill_keys(TradeOrderStatus::ADMIN_CHOICES, 0);
+        foreach (\array_merge($open, $closed) as $row) {
+            $counts[$row['status']] = ($counts[$row['status']] ?? 0) + 1;
+        }
+        $this->data['admin']['statusCounts'] = $counts;
+        $this->data['admin']['statusCards'] = \array_map(
+            static fn(string $status): array => ['label' => TradeOrderStatus::label($status), 'class' => TradeOrderStatus::badgeClass($status), 'count' => $counts[$status]],
+            TradeOrderStatus::ADMIN_CHOICES,
+        );
+        $this->data['admin']['pendingCount'] = $counts[TradeOrderStatus::PENDING];
+
         $this->data['admin']['lists'] = require __DIR__ . '/../lists/trade-orders.php';
         $this->data['admin']['openOrders'] = \array_map(fn(array $row): array => $this->formatOrder(row: $row, sign: $sign), $open);
         $this->data['admin']['closedOrders'] = \array_map(fn(array $row): array => $this->formatOrder(row: $row, sign: $sign), $closed);

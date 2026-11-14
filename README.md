@@ -38,7 +38,7 @@ Customers downloading their own document comes with the theme's order pages.
 
 ## Order emails (0.7)
 
-Two emails to the trade customer (not in SolarGo2, which sends none): an order confirmation when they submit, and a dispatch confirmation when an admin marks the order Shipped. Both show the order number, PO, payment terms, the lines and the totals, and go through the site's chosen mail provider. A failed send is logged and never blocks the order. Both are in the Template test list under Settings > Email, built from made-up data. The dispatch email sends from the admin now. The confirmation is sent by `TradeBasket::submit` through its `afterSubmit` callback, which the customer pages connect when they are built.
+Two emails to the trade customer (not in SolarGo2, which sends none): an order confirmation when they submit, and a dispatch confirmation when an admin marks the order Shipped. Both show the order number, PO, payment terms, the lines and the totals, and go through the site's chosen mail provider. **Email the customer about their order** under Settings > Trade Ordering switches both off (on by default; SolarGo2, which sends none, has it off). A failed send is logged and never blocks the order. Both are in the Template test list under Settings > Email, built from made-up data. The dispatch email sends from the admin now. The confirmation is sent by `TradeBasket::submit` through its `afterSubmit` callback, which the customer pages connect when they are built.
 
 ## Products with options
 

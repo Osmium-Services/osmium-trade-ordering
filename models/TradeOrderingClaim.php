@@ -28,7 +28,7 @@ namespace Osmium\Services\TradeOrdering\Models;
  *                               options[<type id>] = <value id>, where 0 is the type's default option
  *   trade/views/basket.phtml    $tradeBasket: order (the draft, or null), items, setAction (fields item_id and quantity;
  *                               a quantity of 0 removes the line), submitAction (field po_reference), paymentTerms
- *   trade/views/orders.phtml    $tradeOrders: orders (id, reference, status, statusLabel, submitted_at, created_at, item_count, subtotal_exc_tax,
+ *   trade/views/orders.phtml    $tradeOrders: orders (id, reference, status, statusLabel, statusClass, submitted_at, created_at, item_count, subtotal_exc_tax,
  *                               tax_amount, total_inc_tax, discount_percent, po_reference, payment_terms, items[] with
  *                               product_title, product_ref, quantity, unit_price_exc_tax, line_total_exc_tax, and
  *                               hasDocument), pdfAction (form post, hidden field id: the order's PDF)
@@ -143,6 +143,7 @@ final class TradeOrderingClaim
             foreach ((new TradeOrder($db))->listForCustomer($context['customerId']) as $order) {
                 $orders[] = $order + [
                     'statusLabel' => TradeOrderStatus::label((string) $order['status']),
+                    'statusClass' => TradeOrderStatus::badgeClass((string) $order['status']),
                     'items' => $itemModel->listByOrder((int) $order['id']),
                     'hasDocument' => TradeOrderDocument::hasDocument($order),
                 ];

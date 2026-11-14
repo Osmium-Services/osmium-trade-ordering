@@ -13,11 +13,27 @@ $listContext = [
     <h4 class="mb-0">
         <i class="bx bx-package me-2 align-text-bottom"></i>Trade Orders
     </h4>
+    <?php if ($admin['pendingCount'] > 0): ?>
+    <span class="badge bg-warning"><?= (int) $admin['pendingCount'] ?> pending</span>
+    <?php endif; ?>
     <?php if ($admin['isAdmin'] ?? false): ?>
     <a href="<?= $admin['basePath'] ?>settings/trade-ordering/" class="btn btn-outline-secondary">
         <i class="bx bx-cog me-1"></i> Settings
     </a>
     <?php endif; ?>
+</div>
+
+<div class="row mb-4">
+    <?php foreach ($admin['statusCards'] as $card): ?>
+    <div class="col-md-2 col-sm-4 col-6 mb-3">
+        <div class="card h-100">
+            <div class="card-body text-center py-3">
+                <h3 class="mb-1"><?= (int) $card['count'] ?></h3>
+                <small class="text-<?= \htmlspecialchars($card['class']) ?>"><?= \htmlspecialchars($card['label']) ?></small>
+            </div>
+        </div>
+    </div>
+    <?php endforeach; ?>
 </div>
 
 <?= ListView::render($admin['lists']['open'], $admin['openOrders'], $listContext) ?>

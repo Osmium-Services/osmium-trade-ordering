@@ -35,7 +35,9 @@ class TradeOrderingSettingsController extends AdminController
         $this->data['admin']['shopBrandsAvailable'] = $brands !== null;
         $this->data['admin']['brandRows'] = TradeBrandRules::rows(brands: $brands ?? [], excludedIds: $exclusions->ids());
         $categories = $this->shopCategories();
-        $this->data['admin']['discountOptions'] = TradeOrderingConfig::get()['discountOptions'];
+        $config = TradeOrderingConfig::get();
+        $this->data['admin']['discountOptions'] = $config['discountOptions'];
+        $this->data['admin']['sendEmails'] = $config['sendEmails'];
         $this->data['admin']['shopCategoriesAvailable'] = $categories !== null;
         $this->data['admin']['categoryRows'] = TradeCategoryModes::rows(categories: $categories ?? [], modes: (new TradeCategoryRules($this->osmium->dataSource))->modes());
         $this->data['admin']['categoryLabels'] = TradeCategoryModes::LABELS;
@@ -61,7 +63,7 @@ class TradeOrderingSettingsController extends AdminController
         $ticked = \array_map('intval', (array) ($_POST['eligible'] ?? []));
         $exclusions->replace(TradeBrandRules::nextExclusions(brands: $brands, currentExcluded: $exclusions->ids(), tickedIds: $ticked));
 
-        TradeOrderingConfig::save(discountOptions: isset($_POST['discount_options']));
+        TradeOrderingConfig::save(discountOptions: isset($_POST['discount_options']), sendEmails: isset($_POST['send_emails']));
 
         $categories = $this->shopCategories();
         $hasCategories = $categories !== null;
@@ -70,7 +72,7 @@ class TradeOrderingSettingsController extends AdminController
             $rules->replace(TradeCategoryModes::next(categories: $categories, current: $rules->modes(), posted: (array) ($_POST['category_mode'] ?? [])));
         }
 
-        $this->admin->model->changelog->log(description: 'Updated Trade Ordering settings (brand discount, option prices and price list categories)', recordType: 'settings');
+        $this->admin->model->changelog->log(description: 'Updated Trade Ordering settings (brand discount, option prices, order emails and price list categories)', recordType: 'settings');
 
         $_SESSION['trade_ordering_saved'] = true;
         $this->redirect('settings/trade-ordering/');

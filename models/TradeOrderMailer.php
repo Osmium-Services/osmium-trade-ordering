@@ -29,6 +29,9 @@ final class TradeOrderMailer
 
     private function sendFor(int $orderId, callable $build): bool
     {
+        $switchedOff = !TradeOrderingConfig::get()['sendEmails'];
+        if ($switchedOff) return false;
+
         try {
             $db = $this->osmium->dataSource;
             $order = (new TradeOrder($db))->getForAdmin($orderId);
