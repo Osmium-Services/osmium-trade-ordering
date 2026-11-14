@@ -104,7 +104,7 @@ final class TradeOrderingClaim
                 'discountPercent' => $discount,
                 'sections' => $sections,
                 'addAction' => '/api/trade-basket-add' . $slash,
-                'documentsUrl' => '/trade/downloads' . $slash,
+                'documentsUrl' => '/trade/downloads' . $slash . '?product=',
                 'taxRatePercent' => $loggedIn ? TradeOrderingSource::taxRatePercent($context['osmium']) : 0.0,
             ]]];
         }
