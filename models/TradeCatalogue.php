@@ -20,9 +20,10 @@ final class TradeCatalogue
      * @param int[] $excludedBrandIds brands that get no trade discount
      * @param array<int, array{id: int, parentId: ?int, name: string, path: string[], order: int[]}> $categories as shop.categories gives them
      * @param array<int, string> $modes category id => TradeCategoryModes (a missing one is its own section)
+     * @param bool $discountOptions whether the trade discount also comes off an option's extra price
      * @return array<int, array{heading: string, path: string[], products: array<int, array<string, mixed>>}>
      */
-    public static function sections(array $products, float $discountPercent, array $excludedBrandIds, float $taxRatePercent, array $categories = [], array $modes = []): array
+    public static function sections(array $products, float $discountPercent, array $excludedBrandIds, float $taxRatePercent, array $categories = [], array $modes = [], bool $discountOptions = false): array
     {
         $map = [];
         foreach ($categories as $category) {
@@ -31,7 +32,7 @@ final class TradeCatalogue
 
         $byKey = [];
         foreach ($products as $product) {
-            $priced = self::priced($product, $discountPercent, $excludedBrandIds, $taxRatePercent);
+            $priced = self::priced($product, $discountPercent, $excludedBrandIds, $taxRatePercent, $discountOptions);
 
             // A product shows in every section it is listed under, once each
             $listedUnder = ($product['categories'] ?? []) !== [] ? $product['categories'] : [$product['category'] ?? null];
@@ -97,7 +98,7 @@ final class TradeCatalogue
      * @param int[] $excludedBrandIds
      * @return array<string, mixed> the product plus tradePriceExcTax, tradePriceIncTax, discounted and canOrder
      */
-    public static function priced(array $product, float $discountPercent, array $excludedBrandIds, float $taxRatePercent): array
+    public static function priced(array $product, float $discountPercent, array $excludedBrandIds, float $taxRatePercent, bool $discountOptions = false): array
     {
         $eligible = !\in_array((int) $product['brandId'], $excludedBrandIds, true);
         $line = TradePricing::line(basePriceExcTax: (float) $product['priceExcTax'], discountPercent: $discountPercent, brandEligible: $eligible, taxRatePercent: $taxRatePercent, quantity: 1);
@@ -107,6 +108,7 @@ final class TradeCatalogue
             'tradePriceIncTax' => $line['unit_inc_tax'],
             'discounted' => $eligible && $discountPercent > 0,
             'discountAllowed' => $eligible,
+            'optionPremiumFactor' => $eligible && $discountOptions && $discountPercent > 0 ? 1 - $discountPercent / 100 : 1.0,
             'canOrder' => (bool) $product['available'],
         ];
     }

@@ -8,7 +8,10 @@ namespace Osmium\Services\TradeOrdering\Models;
  * Answers core's `page.claim` hook for the trade ordering pages. The theme supplies the views (named relative to the
  * site's module path); the claim hands over the data. A claim cannot redirect, so a visitor who is not logged in is
  * shown the view with loggedIn false and the login address to link to. Every form posts to an api/trade-basket-* route,
- * which redirects back with a one-time message.
+ * which redirects back with a one-time message. A script that sends `Accept: application/json` to the same routes gets
+ * {success, message or error, cart} instead (and `reference` after a submit), and api/trade-basket-cart returns the cart
+ * alone: item_count, items (id, title, options_display, unit_price, quantity, line_total), subtotal, tax, total,
+ * currency_sign. A theme can use these for a slide-in basket.
  *
  * Every view gets these in its array: loggedIn, loginUrl, customer (company_name, contact_name), currencySign, taxName,
  * productsUrl, basketUrl, ordersUrl, notice and error (one-time messages, or null), basketCount (items in the basket).
@@ -16,7 +19,13 @@ namespace Osmium\Services\TradeOrdering\Models;
  *   trade/views/products.phtml  $tradeProducts: discountPercent, sections (heading, path[], products[]), addAction.
  *                               A product has id, title, brandName, name, reference, image (or null), statusLabel,
  *                               priceExcTax (the shop price), tradePriceExcTax, tradePriceIncTax, discounted, canOrder,
- *                               hasOptions, available. Add form: method post, fields product_id and quantity
+ *                               hasOptions, options (the product's option types: id, label, defaultLabel, values[] with id,
+ *                               label, premium), optionPremiumFactor (what an option's price is multiplied by: below 1
+ *                               when the site discounts options), discountAllowed, available. Also taxRatePercent and
+ *                               documentsUrl (put a product id after it to open that product's documents, or null when
+ *                               Trade Downloads is not installed: show no Documents link then).
+ *                               Add form: method post, fields product_id and quantity, and for a product with options
+ *                               options[<type id>] = <value id>, where 0 is the type's default option
  *   trade/views/basket.phtml    $tradeBasket: order (the draft, or null), items, setAction (fields item_id and quantity;
  *                               a quantity of 0 removes the line), submitAction (field po_reference), paymentTerms
  *   trade/views/orders.phtml    $tradeOrders: orders (id, reference, status, statusLabel, submitted_at, created_at, item_count, subtotal_exc_tax,
@@ -97,14 +106,14 @@ final class TradeOrderingClaim
                 $discount = TradeBasketFactory::terms($osmium->dataSource, $context['customerId'])['discount_percent'];
                 $excluded = (new TradeBrandExclusions($osmium->dataSource))->ids();
                 $modes = (new TradeCategoryRules($osmium->dataSource))->modes();
-                $sections = TradeCatalogue::sections(self::withOptions(TradeOrderingSource::products($osmium), TradeOrderingSource::options($osmium)), $discount, $excluded, TradeOrderingSource::taxRatePercent($osmium), TradeOrderingSource::categories($osmium), $modes);
+                $sections = TradeCatalogue::sections(self::withOptions(TradeOrderingSource::products($osmium), TradeOrderingSource::options($osmium)), $discount, $excluded, TradeOrderingSource::taxRatePercent($osmium), TradeOrderingSource::categories($osmium), $modes, TradeOrderingConfig::get()['discountOptions']);
             }
 
             return ['view' => 'trade/views/products.phtml', 'data' => ['tradeProducts' => $common + [
                 'discountPercent' => $discount,
                 'sections' => $sections,
                 'addAction' => '/api/trade-basket-add' . $slash,
-                'documentsUrl' => '/trade/downloads' . $slash . '?product=',
+                'documentsUrl' => $loggedIn ? TradeOrderingSource::documentsUrl($context['osmium']) : null,
                 'taxRatePercent' => $loggedIn ? TradeOrderingSource::taxRatePercent($context['osmium']) : 0.0,
             ]]];
         }

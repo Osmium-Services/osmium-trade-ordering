@@ -17,6 +17,7 @@ final class TradeBasket
     /**
      * @param callable(int): ?array $product The shop's product (shop.product.get), or null
      * @param callable(int): array<int, array<string, mixed>> $options The product's option types (shop.product.options)
+     * @param callable(): bool $discountOptions Whether the trade discount also comes off an option's extra price
      * @param callable(int): array{discount_percent: float, payment_terms: ?string} $terms A customer's terms
      * @param callable(): int[] $excludedBrandIds Brands that get no trade discount
      * @param callable(): float $taxRatePercent The shop's tax rate
@@ -27,6 +28,7 @@ final class TradeBasket
         private TradeOrderItem $items,
         private $product,
         private $options,
+        private $discountOptions,
         private $terms,
         private $excludedBrandIds,
         private $taxRatePercent,
@@ -67,6 +69,7 @@ final class TradeBasket
             taxRatePercent: ($this->taxRatePercent)(),
             quantity: $quantity,
             premiumExcTax: $chosen['premium'],
+            discountPremium: ($this->discountOptions)(),
         );
         $itemId = $this->items->insert(orderId: $orderId, productId: $productId, line: $priced + [
             'product_ref' => (string) $product['reference'],

@@ -16,6 +16,7 @@ final class TradeBasketFactory
             items: new TradeOrderItem($db),
             product: static fn(int $id): ?array => TradeOrderingSource::product($osmium, $id),
             options: static fn(int $id): array => TradeOrderingSource::options($osmium, $id)[$id] ?? [],
+            discountOptions: static fn(): bool => TradeOrderingConfig::get()['discountOptions'],
             terms: static fn(int $customerId): array => self::terms($db, $customerId),
             excludedBrandIds: static fn(): array => (new TradeBrandExclusions($db))->ids(),
             taxRatePercent: static fn(): float => TradeOrderingSource::taxRatePercent($osmium),

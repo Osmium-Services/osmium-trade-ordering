@@ -12,6 +12,7 @@ use Osmium\Services\TradeOrdering\Models\TradeBrandExclusions;
 use Osmium\Services\TradeOrdering\Models\TradeBrandRules;
 use Osmium\Services\TradeOrdering\Models\TradeCategoryModes;
 use Osmium\Services\TradeOrdering\Models\TradeCategoryRules;
+use Osmium\Services\TradeOrdering\Models\TradeOrderingConfig;
 
 /**
  * Trade Ordering settings: which shop brands get the trade discount, and how each shop category appears on the price list. A full-page form POST/redirect flow.
@@ -34,6 +35,7 @@ class TradeOrderingSettingsController extends AdminController
         $this->data['admin']['shopBrandsAvailable'] = $brands !== null;
         $this->data['admin']['brandRows'] = TradeBrandRules::rows(brands: $brands ?? [], excludedIds: $exclusions->ids());
         $categories = $this->shopCategories();
+        $this->data['admin']['discountOptions'] = TradeOrderingConfig::get()['discountOptions'];
         $this->data['admin']['shopCategoriesAvailable'] = $categories !== null;
         $this->data['admin']['categoryRows'] = TradeCategoryModes::rows(categories: $categories ?? [], modes: (new TradeCategoryRules($this->osmium->dataSource))->modes());
         $this->data['admin']['categoryLabels'] = TradeCategoryModes::LABELS;
@@ -59,6 +61,8 @@ class TradeOrderingSettingsController extends AdminController
         $ticked = \array_map('intval', (array) ($_POST['eligible'] ?? []));
         $exclusions->replace(TradeBrandRules::nextExclusions(brands: $brands, currentExcluded: $exclusions->ids(), tickedIds: $ticked));
 
+        TradeOrderingConfig::save(discountOptions: isset($_POST['discount_options']));
+
         $categories = $this->shopCategories();
         $hasCategories = $categories !== null;
         if ($hasCategories) {
@@ -66,7 +70,7 @@ class TradeOrderingSettingsController extends AdminController
             $rules->replace(TradeCategoryModes::next(categories: $categories, current: $rules->modes(), posted: (array) ($_POST['category_mode'] ?? [])));
         }
 
-        $this->admin->model->changelog->log(description: 'Updated Trade Ordering settings (brand discount and price list categories)', recordType: 'settings');
+        $this->admin->model->changelog->log(description: 'Updated Trade Ordering settings (brand discount, option prices and price list categories)', recordType: 'settings');
 
         $_SESSION['trade_ordering_saved'] = true;
         $this->redirect('settings/trade-ordering/');

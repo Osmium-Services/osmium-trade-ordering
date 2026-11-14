@@ -47,6 +47,12 @@
                             </div>
                         <?php endforeach; ?>
                         <?php if (!$admin['brandRows']): ?><p class="mb-0">The shop has no brands yet.</p><?php endif; ?>
+                        <hr>
+                        <div class="form-check form-switch mb-1">
+                            <input class="form-check-input" type="checkbox" id="discountOptions" name="discount_options" value="1" <?= $admin['discountOptions'] ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="discountOptions">Discount option prices too</label>
+                        </div>
+                        <p class="text-muted small mb-0">Off: an option costs its shop price on top of the discounted product price. On: the customer's discount comes off the option's price as well.</p>
                     </div>
                 </div>
             </div>

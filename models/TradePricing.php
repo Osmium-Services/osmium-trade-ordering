@@ -13,10 +13,11 @@ final class TradePricing
     /**
      * @return array{unit_exc_tax: float, unit_inc_tax: float, line_exc_tax: float, line_inc_tax: float}
      */
-    public static function line(float $basePriceExcTax, float $discountPercent, bool $brandEligible, float $taxRatePercent, int $quantity, float $premiumExcTax = 0.0): array
+    public static function line(float $basePriceExcTax, float $discountPercent, bool $brandEligible, float $taxRatePercent, int $quantity, float $premiumExcTax = 0.0, bool $discountPremium = false): array
     {
         $discounted = $brandEligible && $discountPercent > 0;
-        $unitExc = ($discounted ? $basePriceExcTax * (1 - $discountPercent / 100) : $basePriceExcTax) + $premiumExcTax; // Option premiums are not discounted
+        $factor = $discounted ? 1 - $discountPercent / 100 : 1.0;
+        $unitExc = $basePriceExcTax * $factor + $premiumExcTax * ($discountPremium ? $factor : 1.0); // An option's extra price is discounted only when the site says so
         $unitInc = $unitExc * (1 + $taxRatePercent / 100);
 
         return [

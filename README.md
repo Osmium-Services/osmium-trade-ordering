@@ -40,6 +40,14 @@ Customers downloading their own document comes with the theme's order pages.
 
 Two emails to the trade customer (not in SolarGo2, which sends none): an order confirmation when they submit, and a dispatch confirmation when an admin marks the order Shipped. Both show the order number, PO, payment terms, the lines and the totals, and go through the site's chosen mail provider. A failed send is logged and never blocks the order. Both are in the Template test list under Settings > Email, built from made-up data. The dispatch email sends from the admin now. The confirmation is sent by `TradeBasket::submit` through its `afterSubmit` callback, which the customer pages connect when they are built.
 
+## Products with options
+
+A product with option types (the shop's `shop.product.options` hook) is ordered by choosing a value for each type; value 0 is the type's default option, at no extra cost. The server checks every choice against the shop, adds the options' extra prices to the unit price, and keeps the choice on the line (`options_json`, `options_display`, and in the line title). The same product with the same options adds to its line, with different options it is a new line. The trade discount comes off the product price only, unless **Discount option prices too** is switched on under Settings > Trade Ordering (stored in `app/config/services/osmium-trade-ordering.json.php`).
+
+## For the theme
+
+The customer pages are claimed by this service and drawn by the theme's views: see the list at the top of `models/TradeOrderingClaim.php` for each view's data. The same routes the forms post to answer `Accept: application/json` with the result and the new basket, and `api/trade-basket-cart` returns the basket, so a theme can run a slide-in basket without a page reload. The Documents link on a product appears only when Trade Downloads answers `trade.documents.url`.
+
 ## Planned
 
 The customer pages from the theme (basket, order history, their own PDF). See the design note in the osmium-base knowledge base.

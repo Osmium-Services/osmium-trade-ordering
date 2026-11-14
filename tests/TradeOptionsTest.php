@@ -47,4 +47,11 @@ final class TradeOptionsTest extends TestCase
         $this->assertSame(85.0, $line['unit_exc_tax']);
         $this->assertSame(170.0, $line['line_exc_tax']);
     }
+
+    public function test_the_premium_is_discounted_too_when_the_site_says_so(): void
+    {
+        $line = TradePricing::line(basePriceExcTax: 100.0, discountPercent: 25.0, brandEligible: true, taxRatePercent: 20.0, quantity: 1, premiumExcTax: 10.0, discountPremium: true);
+
+        $this->assertSame(82.5, $line['unit_exc_tax']);
+    }
 }

@@ -57,6 +57,14 @@ final class TradeOrderingSource
         return \is_array($options) ? $options : [];
     }
 
+    /** @return string|null the address to put a product id after to open its documents (from Trade Downloads), or null when that service is not installed */
+    public static function documentsUrl(object $osmium): ?string
+    {
+        $url = self::hooks($osmium)->handle(event: 'trade.documents.url', payload: ['osmium' => $osmium]);
+
+        return \is_string($url) ? $url : null;
+    }
+
     public static function taxRatePercent(object $osmium): float
     {
         return (float) ($osmium->config->shop->taxRatePercent ?? 0);
