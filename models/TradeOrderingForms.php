@@ -51,6 +51,24 @@ final class TradeOrderingForms
             : self::done($osmium, self::path($osmium, 'basket'), ['error' => $result['error'] ?? 'Could not submit your order.']);
     }
 
+    /** POST: id. The customer's own order as a PDF; any other order (or one with no document) is a plain-text refusal */
+    public static function pdf(object $osmium): never
+    {
+        $customer = self::customer($osmium);
+        $order = (new TradeOrder($osmium->dataSource))->getForAdmin((int) ($_POST['id'] ?? 0));
+        $theirs = $order !== null && (int) $order['customer_id'] === (int) $customer['id'] && $order['status'] !== TradeOrderStatus::DRAFT;
+        $found = $theirs && TradeOrderDocument::hasDocument($order);
+
+        if (!$found) {
+            \http_response_code(404);
+            \header('Content-Type: text/plain; charset=utf-8');
+            echo 'No document found for that order.';
+            exit;
+        }
+
+        TradeOrderDocument::send($osmium, $order);
+    }
+
     /** The logged-in customer, or the visitor goes to the login page */
     private static function customer(object $osmium): array
     {

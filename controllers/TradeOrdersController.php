@@ -6,7 +6,7 @@ namespace Osmium\Services\TradeOrdering\Controllers;
 
 use Osmium\Modules\Admin\Core\AdminController;
 use Osmium\Services\TradeOrdering\Models\TradeInvoiceLayout;
-use Osmium\Services\TradeOrdering\Models\TradeInvoicePdf;
+use Osmium\Services\TradeOrdering\Models\TradeOrderDocument;
 use Osmium\Services\TradeOrdering\Models\TradeOrder;
 use Osmium\Services\TradeOrdering\Models\TradeOrderItem;
 use Osmium\Services\TradeOrdering\Models\TradeOrderMailer;
@@ -77,25 +77,7 @@ class TradeOrdersController extends AdminController
         $document = $order === null ? null : TradeInvoiceLayout::document((string) $order['status']);
         if ($document === null) $this->plainError(code: 404, message: 'This order has no document');
 
-        $config = $this->osmium->config;
-        $taxName = (string) ($config->shop->taxName ?? 'VAT');
-        $items = (new TradeOrderItem($this->osmium->dataSource))->listByOrder((int) $order['id']);
-        $pdf = (new TradeInvoicePdf())->build(
-            order: $order,
-            items: $items,
-            companyLines: TradeInvoiceLayout::companyLines(company: (array) ($config->company ?? []), taxName: $taxName),
-            siteName: (string) ($config->site->name ?? ''),
-            sign: $this->currencySign(),
-            taxName: $taxName,
-        );
-
-        $filename = TradeInvoiceLayout::filename(prefix: $document['prefix'], reference: (string) $order['reference']);
-        \header('Content-Type: application/pdf');
-        \header('Content-Disposition: attachment; filename="' . $filename . '"');
-        \header('Content-Length: ' . \strlen($pdf));
-        \header('Cache-Control: private, max-age=0, must-revalidate');
-        echo $pdf;
-        exit;
+        TradeOrderDocument::send($this->osmium, $order);
     }
 
     private function plainError(int $code, string $message): never

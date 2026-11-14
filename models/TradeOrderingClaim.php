@@ -19,8 +19,10 @@ namespace Osmium\Services\TradeOrdering\Models;
  *                               hasOptions, available. Add form: method post, fields product_id and quantity
  *   trade/views/basket.phtml    $tradeBasket: order (the draft, or null), items, setAction (fields item_id and quantity;
  *                               a quantity of 0 removes the line), submitAction (field po_reference), paymentTerms
- *   trade/views/orders.phtml    $tradeOrders: orders (reference, status, statusLabel, submitted_at, item_count,
- *                               total_inc_tax, subtotal_exc_tax, po_reference, payment_terms)
+ *   trade/views/orders.phtml    $tradeOrders: orders (id, reference, status, statusLabel, submitted_at, created_at, item_count, subtotal_exc_tax,
+ *                               tax_amount, total_inc_tax, discount_percent, po_reference, payment_terms, items[] with
+ *                               product_title, product_ref, quantity, unit_price_exc_tax, line_total_exc_tax, and
+ *                               hasDocument), pdfAction (form post, hidden field id: the order's PDF)
  */
 final class TradeOrderingClaim
 {
@@ -106,11 +108,17 @@ final class TradeOrderingClaim
 
         $orders = [];
         if ($loggedIn) {
-            foreach ((new TradeOrder($context['osmium']->dataSource))->listForCustomer($context['customerId']) as $order) {
-                $orders[] = $order + ['statusLabel' => TradeOrderStatus::label((string) $order['status'])];
+            $db = $context['osmium']->dataSource;
+            $itemModel = new TradeOrderItem($db);
+            foreach ((new TradeOrder($db))->listForCustomer($context['customerId']) as $order) {
+                $orders[] = $order + [
+                    'statusLabel' => TradeOrderStatus::label((string) $order['status']),
+                    'items' => $itemModel->listByOrder((int) $order['id']),
+                    'hasDocument' => TradeOrderDocument::hasDocument($order),
+                ];
             }
         }
 
-        return ['view' => 'trade/views/orders.phtml', 'data' => ['tradeOrders' => $common + ['orders' => $orders]]];
+        return ['view' => 'trade/views/orders.phtml', 'data' => ['tradeOrders' => $common + ['orders' => $orders, 'pdfAction' => '/api/trade-order-pdf' . $slash]]];
     }
 }
