@@ -49,7 +49,8 @@ final class TradeCatalogue
                     'products' => [],
                 ];
                 $listed = \in_array($priced['id'], \array_column($byKey[$key]['products'], 'id'), true);
-                if (!$listed) $byKey[$key]['products'][] = $priced;
+                $sort = $section === null ? 9999 : (int) ($product['categorySorts'][(int) ($category['id'] ?? 0)] ?? 9999);
+                if (!$listed) $byKey[$key]['products'][] = $priced + ['sortInSection' => $sort];
             }
         }
 
@@ -58,8 +59,14 @@ final class TradeCatalogue
 
         $result = [];
         foreach ($sections as $section) {
-            \usort($section['products'], static fn(array $a, array $b): int => \strcasecmp((string) $a['title'], (string) $b['title']));
-            $result[] = ['heading' => $section['heading'], 'path' => $section['path'], 'products' => $section['products']];
+            // As SolarGo2 lists them: by brand, then the product's own sort number in that category, then name
+            \usort($section['products'], static fn(array $a, array $b): int => [$a['brandId'], $a['sortInSection']] <=> [$b['brandId'], $b['sortInSection']] ?: \strcasecmp((string) ($a['name'] ?? $a['title']), (string) ($b['name'] ?? $b['title'])));
+            $products = \array_map(static function (array $product): array {
+                unset($product['sortInSection']);
+
+                return $product;
+            }, $section['products']);
+            $result[] = ['heading' => $section['heading'], 'path' => $section['path'], 'products' => $products];
         }
 
         return $result;
@@ -108,6 +115,8 @@ final class TradeCatalogue
             'tradePriceIncTax' => $line['unit_inc_tax'],
             'discounted' => $eligible && $discountPercent > 0,
             'discountAllowed' => $eligible,
+            'customOffer' => (string) ($product['customOffer'] ?? ''),
+            'isNew' => !empty($product['createdAt']) && \strtotime((string) $product['createdAt']) > \strtotime('-1 month'), // Added within the last month, as SolarGo2 shows it
             'optionPremiumFactor' => $eligible && $discountOptions && $discountPercent > 0 ? 1 - $discountPercent / 100 : 1.0,
             'canOrder' => (bool) $product['available'],
         ];

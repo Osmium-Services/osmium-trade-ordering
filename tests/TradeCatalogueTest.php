@@ -128,4 +128,14 @@ final class TradeCatalogueTest extends TestCase
         $this->assertSame(['Rigid', 'Bypass'], \array_column($sections, 'heading'));
         $this->assertCount(1, $sections[0]['products']);
     }
+
+    public function test_products_in_a_section_go_by_brand_then_their_own_sort_in_that_category_then_name(): void
+    {
+        $panels = $this->category(5, 'Panels', [1]) + ['parentId' => null];
+        $make = fn(int $id, string $title, int $brand, int $sort): array => $this->product($id, $title, $brand, $panels) + ['categories' => [$panels], 'categorySorts' => [5 => $sort]];
+
+        $sections = TradeCatalogue::sections([$make(1, 'Zed', 2, 1), $make(2, '100W', 1, 20), $make(3, '40W', 1, 10), $make(4, 'Abe', 1, 10)], 0.0, [], 20.0, [$panels]);
+
+        $this->assertSame(['40W', 'Abe', '100W', 'Zed'], \array_column($sections[0]['products'], 'title'));
+    }
 }

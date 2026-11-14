@@ -31,15 +31,28 @@ final class TradeOrderingSource
 
         $imagesPath = (string) ($osmium->config->site->imagesPath ?? '/assets/images');
         foreach ($products as &$product) {
-            $product['image'] = self::bestImage($osmium, $imagesPath, $product['image'] ?? null);
+            $product['image'] = self::bestImage($osmium, $imagesPath, $product);
         }
 
         return $products;
     }
 
-    /** The product's main image in the best format the site has (AVIF, then WebP, then the shop's jpg), as the shop's own pages show it */
-    private static function bestImage(object $osmium, string $imagesPath, ?string $image): ?string
+    /**
+     * The product's main image in the best format the site has (AVIF, then WebP, then jpg), as the shop's own pages show
+     * it. A shop that gives only the finished jpg path keeps that jpg (or its better copies).
+     *
+     * @param array<string, mixed> $product
+     */
+    private static function bestImage(object $osmium, string $imagesPath, array $product): ?string
     {
+        $image = $product['image'] ?? null;
+        $partial = $product['imagePartial'] ?? null;
+        if (\is_string($partial) && $partial !== '') {
+            $best = $osmium->imagePath($partial);
+
+            return $best !== '' ? $best : null;
+        }
+
         $isUnder = $image !== null && \str_starts_with($image, $imagesPath . '/') && \str_ends_with($image, '.jpg');
         if (!$isUnder) return $image;
 
