@@ -62,6 +62,24 @@ class TradeOrder extends Model
         return ['total' => (float) ($row['total'] ?? 0), 'orders' => (int) ($row['orders'] ?? 0)];
     }
 
+    /** @return array<int, array<string, mixed>> one row per status, as order-period-totals.sql gives it */
+    public function periodTotals(): array
+    {
+        return $this->database->prepare(sql: $this->loadSqlFile('order-period-totals.sql'))->resultset();
+    }
+
+    /** @return array<string, mixed> open and pending counts and how long the oldest pending order has waited */
+    public function queue(): array
+    {
+        return $this->one(file: 'order-queue.sql', bindings: []) ?? [];
+    }
+
+    /** @return array<int, array<string, mixed>> the newest submitted orders with no customer details */
+    public function recentAnonymous(int $limit): array
+    {
+        return $this->database->prepare(sql: $this->loadSqlFile('order-recent-anonymous.sql'), bindings: [':limit' => $limit])->resultset();
+    }
+
     /** A draft is never changed this way */
     public function setStatus(int $id, string $status): void
     {
