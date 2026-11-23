@@ -23,7 +23,7 @@ final class TradeOrderDocument
         $pdf = (new TradeInvoicePdf())->build(
             order: $order,
             items: $items,
-            companyLines: TradeInvoiceLayout::companyLines(company: (array) ($config->company ?? []), taxName: $taxName),
+            companyLines: TradeInvoiceLayout::companyLines(company: $osmium->company(), taxName: $taxName),
             siteName: (string) ($config->site->name ?? ''),
             sign: (string) ($config->shop->currencySign ?? '£'),
             taxName: $taxName,
