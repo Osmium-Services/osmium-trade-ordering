@@ -1,6 +1,7 @@
 ---
 title: Set trade discounts and handle trade orders
 tags: trade, ordering, discount, payment terms, price list, orders, pdf, shipped, brands
+page: admin/trade/orders, admin/settings/trade-ordering
 ---
 
 **Trade Ordering** gives your trade customers their own prices and lets them place orders.
