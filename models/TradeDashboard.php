@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Osmium\Services\TradeOrdering\Models;
 
-/** Hook handler for dashboard.widgets: reads the orders and hands them to the card. */
+/** Hook handler for dashboard.widgets: reads the basket and order numbers and hands them to the row. */
 final class TradeDashboard
 {
     /**
@@ -14,9 +14,7 @@ final class TradeDashboard
     public static function widget(array $payload): array
     {
         $orders = new TradeOrder($payload['osmium']->dataSource);
-        $pending = $orders->listForAdmin([TradeOrderStatus::PENDING]);
-        $sign = (string) ($payload['osmium']->config->shop->currencySign ?? '£');
 
-        return TradeDashboardCard::build(pending: $pending, month: $orders->monthValue(), sign: $sign);
+        return TradeDashboardCard::build(stats: $orders->dashboardStats(), viewFile: __DIR__ . '/../views/widgets/trade-stats.phtml');
     }
 }

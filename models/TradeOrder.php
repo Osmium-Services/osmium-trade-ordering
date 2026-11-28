@@ -54,6 +54,19 @@ class TradeOrder extends Model
         return $this->one(file: 'order-get-admin.sql', bindings: [':id' => $id]);
     }
 
+    /** @return array{active_count: int, active_value: float, converted_count: int, converted_value: float} the dashboard tiles: open baskets and the last 24 hours of submitted orders */
+    public function dashboardStats(): array
+    {
+        $row = $this->one(file: 'order-dashboard-stats.sql', bindings: []);
+
+        return [
+            'active_count' => (int) ($row['active_count'] ?? 0),
+            'active_value' => (float) ($row['active_value'] ?? 0),
+            'converted_count' => (int) ($row['converted_count'] ?? 0),
+            'converted_value' => (float) ($row['converted_value'] ?? 0),
+        ];
+    }
+
     /** @return array{total: float, orders: int} what has been ordered this calendar month, not counting drafts or cancelled orders */
     public function monthValue(): array
     {
